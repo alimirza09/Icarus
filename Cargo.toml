@@ -1,5 +1,5 @@
 [package]
-name = "Icarus"
+name = "icarus"
 version = "0.1.0"
 authors = ["Muhammad Ali Mirza"] 
 edition = "2024"
