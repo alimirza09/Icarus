@@ -1,0 +1,13 @@
+[package]
+name = "Icarus"
+version = "0.1.0"
+authors = ["Muhammad Ali Mirza"] 
+edition = "2024"
+include = ["**/*.rs", "Cargo.toml"]
+
+[dependencies]
+anyhow = "1.0.100"
+log = "0.4.29"
+serde = "1.0.228"
+
+
