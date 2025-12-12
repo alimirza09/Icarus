@@ -1,6 +1,6 @@
 # Icarus
 
-Flying too close to the sun. An independent browser.
+Flying too close to the sun. An independent browser written in rust.
 
 ## Goals
 
