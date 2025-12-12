@@ -225,6 +225,7 @@ dependencies = [
  "log",
  "minifb",
  "serde",
+ "sight",
 ]
 
 [[package]]
@@ -276,6 +277,12 @@ dependencies = [
  "cfg-if",
  "windows-link",
 ]
+
+[[package]]
+name = "libm"
+version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
 name = "libredox"
@@ -639,6 +646,15 @@ name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
+
+[[package]]
+name = "sight"
+version = "0.1.0"
+source = "git+https://github.com/alimirza09/sight.git?branch=other_os#61df6671f90585e51e102bbe8842b101ab2c52ec"
+dependencies = [
+ "libm",
+ "minifb",
+]
 
 [[package]]
 name = "siphasher"
