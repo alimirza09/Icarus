@@ -9,4 +9,6 @@ include = ["**/*.rs", "Cargo.toml"]
 anyhow = "1.0.100"
 html5ever = "0.36.1"
 log = "0.4.29"
+minifb = "0.28.0"
 serde = "1.0.228"
+sight = {git = "https://github.com/alimirza09", branch = "other_os"}
