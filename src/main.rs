@@ -1,5 +1,9 @@
-use icarus::html::parser;
+use icarus::{html::parser, init};
 use parser::parse_html;
+use sight::{
+    Color,
+    bdf::{Font, FontType},
+};
 
 fn main() {
     println!("Icarus Browser - DOM Test\n");
@@ -50,5 +54,21 @@ fn main() {
     for h1 in headings.iter() {
         let text = h1.get_text_content();
         println!("  - {}", text.trim());
+    }
+
+    println!("===============\n");
+
+    let mut ctx = init().expect("Failed");
+    let font_data =
+        std::fs::read("/home/ali/Projects/icarus/resources/FONT.BDF").expect("Failed to read font");
+
+    let font = sight::bdf::parse_bdf_font(&font_data).expect("Failed to parse BDF");
+
+    while ctx.window.is_open() && !ctx.window.is_key_down(minifb::Key::Escape) {
+        ctx.clear(Color::BLACK);
+        font.draw_text("Hello", 10, 20, sight::Color::GREEN, |x, y, color| {
+            ctx.put_pixel(x, y, color);
+        });
+        ctx.present().expect("Failed");
     }
 }
