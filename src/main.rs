@@ -1,9 +1,6 @@
 use icarus::{html::parser, init};
 use parser::parse_html;
-use sight::{
-    Color,
-    bdf::{Font, FontType},
-};
+use sight::Color;
 
 fn main() {
     println!("Icarus Browser - DOM Test\n");
@@ -16,13 +13,13 @@ fn main() {
         </head>
         <body>
             <h1>Welcome to Icarus!</h1>
-            <p>This is a simple HTML page rendered with no CSS.</p>
             <p>The browser engine parses the HTML and displays text content.</p>
             <div>
                 This is some text in a div.
                 It should wrap nicely when it reaches the edge of the screen.
+                The quick brown fox, jumps over the lazy dog?!
+                THE QUICK BROWN FOX; "JUMPS OVER THE LAZY DOG'".:
             </div>
-            <p>More paragraphs can be added here.</p>
         </body>
         </html>
     "#;
@@ -66,7 +63,19 @@ fn main() {
 
     while ctx.window.is_open() && !ctx.window.is_key_down(minifb::Key::Escape) {
         ctx.clear(Color::BLACK);
-        font.draw_text("Hello", 10, 20, sight::Color::GREEN, |x, y, color| {
+
+        let title = document.get_elements_by_tag_name("title");
+        if title.len() == 1 {
+            let text = title[0].get_text_content();
+            ctx.window.set_title(&text);
+        }
+
+        let content = &document
+            .root
+            .get_text_content()
+            .replace(&title[0].get_text_content(), "");
+
+        font.draw_text(&content, 0, 0, sight::Color::GREEN, |x, y, color| {
             ctx.put_pixel(x, y, color);
         });
         ctx.present().expect("Failed");
