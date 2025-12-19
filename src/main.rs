@@ -36,30 +36,16 @@ fn main() {
     let text = document.root.get_text_content();
     println!("{}", text.trim());
 
-    println!("\n\nFound Elements:");
-    println!("===============\n");
-
-    let paragraphs = document.get_elements_by_tag_name("p");
-    println!("Found {} <p> tags:", paragraphs.len());
-    for (i, p) in paragraphs.iter().enumerate() {
-        let text = p.get_text_content();
-        println!("  {}. {}", i + 1, text.trim());
-    }
-
-    let headings = document.get_elements_by_tag_name("h1");
-    println!("\nFound {} <h1> tags:", headings.len());
-    for h1 in headings.iter() {
-        let text = h1.get_text_content();
-        println!("  - {}", text.trim());
-    }
-
     println!("===============\n");
 
     let mut ctx = init().expect("Failed");
     let font_data =
-        std::fs::read("/home/ali/Projects/icarus/resources/FONT.BDF").expect("Failed to read font");
+        std::fs::read("/home/ali/Projects/icarus/resources/6x13.bdf").expect("Failed to read font");
+    let bold_font_data = std::fs::read("/home/ali/Projects/icarus/resources/6x13B.bdf")
+        .expect("failed to read bold font");
 
     let font = sight::bdf::parse_bdf_font(&font_data).expect("Failed to parse BDF");
+    let bold_font = sight::bdf::parse_bdf_font(&bold_font_data).expect("failed to parse bold font");
 
     while ctx.window.is_open() && !ctx.window.is_key_down(minifb::Key::Escape) {
         ctx.clear(Color::BLACK);
@@ -75,9 +61,26 @@ fn main() {
             .get_text_content()
             .replace(&title[0].get_text_content(), "");
 
-        font.draw_text(&content, 0, 0, sight::Color::GREEN, |x, y, color| {
-            ctx.put_pixel(x, y, color);
+        let headings = document.get_elements_by_tag_name("h1");
+
+        let text = headings[0].get_text_content();
+
+        bold_font.draw_text(&text, 0, 0, sight::Color::GREEN, |x, y, color| {
+            ctx.put_pixel(x, y, color)
         });
+
+        let paragraphs = content.replace(&text, "");
+
+        font.draw_text(
+            &paragraphs.trim(),
+            0,
+            13,
+            sight::Color::GREEN,
+            |x, y, color| {
+                ctx.put_pixel(x, y, color);
+            },
+        );
+
         ctx.present().expect("Failed");
     }
 }
