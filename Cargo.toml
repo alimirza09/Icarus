@@ -8,7 +8,5 @@ include = ["**/*.rs", "Cargo.toml"]
 [dependencies]
 anyhow = "1.0.100"
 html5ever = "0.36.1"
-log = "0.4.29"
 minifb = "0.28.0"
-serde = "1.0.228"
 sight = {path="/home/ali/Projects/sos/sight/"}

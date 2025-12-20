@@ -39,13 +39,14 @@ fn main() {
     println!("===============\n");
 
     let mut ctx = init().expect("Failed");
-    let font_data =
-        std::fs::read("/home/ali/Projects/icarus/resources/6x13.bdf").expect("Failed to read font");
-    let bold_font_data = std::fs::read("/home/ali/Projects/icarus/resources/6x13B.bdf")
+    let font_data = std::fs::read("/home/ali/Projects/icarus/resources/NotoSerif-Black.ttf")
+        .expect("Failed to read font");
+    let bold_font_data = std::fs::read("/home/ali/Projects/icarus/resources/NotoSerif-Bold.ttf")
         .expect("failed to read bold font");
 
-    let font = sight::bdf::parse_bdf_font(&font_data).expect("Failed to parse BDF");
-    let bold_font = sight::bdf::parse_bdf_font(&bold_font_data).expect("failed to parse bold font");
+    let font = sight::ttf::TtfFont::from_bytes(&font_data).expect("Failed to parse ttf");
+    let bold_font =
+        sight::ttf::TtfFont::from_bytes(&bold_font_data).expect("failed to parse bold font");
 
     while ctx.window.is_open() && !ctx.window.is_key_down(minifb::Key::Escape) {
         ctx.clear(Color::BLACK);
@@ -63,22 +64,26 @@ fn main() {
 
         let headings = document.get_elements_by_tag_name("h1");
 
-        let text = headings[0].get_text_content();
+        let headings_text = headings[0].get_text_content();
 
-        bold_font.draw_text(&text, 0, 0, sight::Color::GREEN, |x, y, color| {
-            ctx.put_pixel(x, y, color)
-        });
+        ctx.draw_text_antialiased_ttf::<sight::ttf::TtfFont>(
+            &bold_font,
+            &headings_text,
+            0,
+            0,
+            24.0,
+            Color::GREEN,
+        );
 
-        let paragraphs = content.replace(&text, "");
+        let paragraphs = content.replace(&headings_text, "");
 
-        font.draw_text(
+        ctx.draw_text_antialiased_ttf::<sight::ttf::TtfFont>(
+            &font,
             &paragraphs.trim(),
             0,
-            13,
-            sight::Color::GREEN,
-            |x, y, color| {
-                ctx.put_pixel(x, y, color);
-            },
+            24,
+            11.0,
+            Color::GREEN,
         );
 
         ctx.present().expect("Failed");
