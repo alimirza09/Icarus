@@ -1,3 +1,4 @@
+use icarus::graphics::renderer;
 use icarus::{html::parser, init};
 use parser::parse_html;
 use sight::Color;
@@ -5,27 +6,10 @@ use sight::Color;
 fn main() {
     println!("Icarus Browser - DOM Test\n");
 
-    let html = r#"
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Icarus Browser Test</title>
-        </head>
-        <body>
-            <h1>Welcome to Icarus!</h1>
-            <p>The browser engine parses the HTML and displays text content.</p>
-            <div>
-                This is some text in a div.
-                It should wrap nicely when it reaches the edge of the screen.
-                The quick brown fox, jumps over the lazy dog?!
-                THE QUICK BROWN FOX; "JUMPS OVER THE LAZY DOG'".:
-            </div>
-        </body>
-        </html>
-    "#;
+    let html = std::fs::read_to_string("/home/ali/Projects/icarus/test.html").unwrap();
 
     println!("Parsing HTML\n");
-    let document = parse_html(html);
+    let document = parse_html(&html);
 
     println!("DOM Tree:");
     println!("=========\n");
@@ -46,16 +30,43 @@ fn main() {
     let bold_font =
         sight::ttf::TtfFont::from_bytes(&bold_font_data).expect("failed to parse bold font");
 
+    let mut scroll_state = icarus::graphics::renderer::ScrollableDocument::new(ctx.height());
+
     while ctx.window.is_open() && !ctx.window.is_key_down(minifb::Key::Escape) {
+        if ctx.window.is_key_down(minifb::Key::Up) || ctx.window.is_key_down(minifb::Key::W) {
+            scroll_state.scroll_up(20);
+        }
+        if ctx.window.is_key_down(minifb::Key::Down) || ctx.window.is_key_down(minifb::Key::S) {
+            scroll_state.scroll_down(20);
+        }
+        if ctx.window.is_key_down(minifb::Key::PageUp) {
+            scroll_state.scroll_up(ctx.height() as i32 - 50);
+        }
+        if ctx.window.is_key_down(minifb::Key::PageDown) {
+            scroll_state.scroll_down(ctx.height() as i32 - 50);
+        }
+        if ctx.window.is_key_down(minifb::Key::Home) {
+            scroll_state.scroll_offset = 0;
+        }
+        if ctx.window.is_key_down(minifb::Key::End) {
+            scroll_state.scroll_offset =
+                (scroll_state.content_height - scroll_state.viewport_height).max(0);
+        }
+
         ctx.clear(Color::BLACK);
 
         let title = document.get_elements_by_tag_name("title");
-        if title.len() == 1 {
-            let text = title[0].get_text_content();
-            ctx.window.set_title(&text);
+        if !title.is_empty() {
+            ctx.window.set_title(&title[0].get_text_content());
         }
 
-        icarus::graphics::render_document(&mut ctx, &document, &font, &bold_font);
+        renderer::render_document_scrollable(
+            &mut ctx,
+            &document,
+            &font,
+            &bold_font,
+            &mut scroll_state,
+        );
 
         ctx.present().expect("Failed");
     }
