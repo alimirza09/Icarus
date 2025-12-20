@@ -24,18 +24,16 @@ fn main() {
         </html>
     "#;
 
-    println!("Parsing HTML...\n");
+    println!("Parsing HTML\n");
     let document = parse_html(html);
 
     println!("DOM Tree:");
     println!("=========\n");
     document.print_tree();
 
-    println!("\n\nText Content:");
     println!("=============\n");
     let text = document.root.get_text_content();
     println!("{}", text.trim());
-
     println!("===============\n");
 
     let mut ctx = init().expect("Failed");
@@ -57,34 +55,7 @@ fn main() {
             ctx.window.set_title(&text);
         }
 
-        let content = &document
-            .root
-            .get_text_content()
-            .replace(&title[0].get_text_content(), "");
-
-        let headings = document.get_elements_by_tag_name("h1");
-
-        let headings_text = headings[0].get_text_content();
-
-        ctx.draw_text_antialiased_ttf::<sight::ttf::TtfFont>(
-            &bold_font,
-            &headings_text,
-            0,
-            0,
-            24.0,
-            Color::GREEN,
-        );
-
-        let paragraphs = content.replace(&headings_text, "");
-
-        ctx.draw_text_antialiased_ttf::<sight::ttf::TtfFont>(
-            &font,
-            &paragraphs.trim(),
-            0,
-            24,
-            11.0,
-            Color::GREEN,
-        );
+        icarus::graphics::render_document(&mut ctx, &document, &font, &bold_font);
 
         ctx.present().expect("Failed");
     }
