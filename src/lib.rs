@@ -4,6 +4,7 @@ use minifb::Menu;
 pub mod dom;
 pub mod graphics;
 pub mod html;
+pub mod networking;
 
 pub fn init() -> Result<sight::Sight> {
     let mut ctx = sight::Sight::new(800, 500, "Icarus").expect("Failed to create main window");

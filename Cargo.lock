@@ -229,6 +229,7 @@ dependencies = [
  "anyhow",
  "html5ever",
  "minifb",
+ "serde",
  "sight",
 ]
 
