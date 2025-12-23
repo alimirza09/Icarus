@@ -8,5 +8,7 @@ include = ["**/*.rs", "Cargo.toml"]
 [dependencies]
 anyhow = "1.0.100"
 html5ever = "0.36.1"
-minifb = "0.28.0"
-sight = {path="/home/ali/Projects/sos/sight/"}
+raylib = "5.0"
+tokio = { version = "1.47.0", features = ["full"]}
+tokio-native-tls = "0.3"
+native-tls = "0.2"
