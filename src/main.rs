@@ -7,13 +7,18 @@ fn main() {
     println!("Icarus Browser - DOM Test\n");
 
     let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
-    let _html = rt.block_on(async { icarus::networking::http::connect_to_http_site("https:") });
+    let html = rt.block_on(async {
+        icarus::networking::http::connect_to_http_site("https://www.example.com").await
+    });
 
-    let html = std::fs::read_to_string("/home/ali/Projects/icarus/test.html")
+    let _html = std::fs::read_to_string("/home/ali/Projects/icarus/test-css.html")
         .expect("Error reading test.html");
 
     println!("Parsing HTML\n");
     let document = parse_html(&html);
+
+    println!("Computing styles\n");
+    icarus::css::computer::compute_styles(&document);
 
     println!("DOM Tree:");
     println!("=========\n");
@@ -37,12 +42,33 @@ fn main() {
     let bold_font_data = std::fs::read("/home/ali/Projects/icarus/resources/NotoSerif-Bold.ttf")
         .expect("failed to read bold font");
 
+    let char_ranges: Vec<(u32, u32)> = vec![
+        (0x0020, 0x007E),
+        (0x00A0, 0x00FF),
+        (0x2013, 0x2014),
+        (0x2018, 0x201D),
+        (0x2022, 0x2022),
+        (0x2026, 0x2026),
+        (0x2190, 0x21FF),
+        (0x2200, 0x22FF),
+        (0x2500, 0x257F),
+        (0x2580, 0x259F),
+        (0x25A0, 0x25FF),
+        (0x2600, 0x26FF),
+        (0x2660, 0x2667),
+    ];
+
+    let chars: String = char_ranges
+        .iter()
+        .flat_map(|(start, end)| (*start..=*end).filter_map(char::from_u32))
+        .collect();
+
     let font = rl
-        .load_font_from_memory(&thread, ".ttf", &font_data, 64, None)
+        .load_font_from_memory(&thread, ".ttf", &font_data, 64, Some(&chars))
         .expect("Failed to load font");
 
     let bold_font = rl
-        .load_font_from_memory(&thread, ".ttf", &bold_font_data, 64, None)
+        .load_font_from_memory(&thread, ".ttf", &bold_font_data, 64, Some(&chars))
         .expect("Failed to load bold font");
 
     let mut scroll_state = renderer::ScrollableDocument::new(rl.get_screen_height() as u32);
@@ -78,10 +104,11 @@ fn main() {
 
         let wheel_move = rl.get_mouse_wheel_move();
         if wheel_move != 0.0 {
+            let scroll_amount = (wheel_move.abs() * 50.0) as i32;
             if wheel_move > 0.0 {
-                scroll_state.scroll_up((wheel_move * 30.0) as i32);
+                scroll_state.scroll_up(scroll_amount);
             } else {
-                scroll_state.scroll_down((wheel_move.abs() * 30.0) as i32);
+                scroll_state.scroll_down(scroll_amount);
             }
         }
 
@@ -93,7 +120,7 @@ fn main() {
         {
             let mut d = rl.begin_drawing(&thread);
 
-            d.clear_background(Color::BLACK);
+            d.clear_background(Color::WHITE);
 
             renderer::render_document_scrollable(
                 &mut d,

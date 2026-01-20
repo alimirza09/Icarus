@@ -1,13 +1,9 @@
+use crate::css::types::{Display, FontStyle, FontWeight};
 use crate::dom::{Node, NodeData};
 use raylib::prelude::*;
 use std::rc::Rc;
 
 const BASE_FONT_SIZE: f32 = 26.0;
-const H1_SIZE: f32 = 56.0;
-const H2_SIZE: f32 = 44.0;
-const H3_SIZE: f32 = 36.0;
-const H4_SIZE: f32 = 30.0;
-const CODE_FONT_SIZE: f32 = 26.0;
 
 pub struct RenderContext<'a> {
     pub current_y: i32,
@@ -22,7 +18,6 @@ pub struct RenderContext<'a> {
     pub default_color: Color,
     pub max_width: i32,
     pub font_size: f32,
-    pub heading_sizes: [f32; 4],
     pub screen_width: i32,
     pub screen_height: i32,
 }
@@ -44,10 +39,9 @@ impl<'a> RenderContext<'a> {
             regular_font,
             bold_font,
             italic_font: None,
-            default_color: Color::new(0, 255, 0, 255),
+            default_color: Color::BLACK,
             max_width: screen_width - 20,
             font_size: BASE_FONT_SIZE,
-            heading_sizes: [H1_SIZE, H2_SIZE, H3_SIZE, H4_SIZE],
             screen_width,
             screen_height,
         }
@@ -92,7 +86,8 @@ impl<'a> RenderContext<'a> {
     }
 
     fn measure_text(&self, text: &str, font: &Font, size: f32) -> Vector2 {
-        let spacing = size / 10.0;
+        // let spacing = size / 0.0;
+        let spacing = 0.0;
         font.measure_text(text, size, spacing)
     }
 
@@ -103,6 +98,7 @@ impl<'a> RenderContext<'a> {
         font: &Font,
         size: f32,
         color: Color,
+        bg_color: Option<Color>,
     ) {
         let text = text.trim();
         if text.is_empty() {
@@ -126,12 +122,23 @@ impl<'a> RenderContext<'a> {
             if test_width + wrap_guard > self.max_width && !line.is_empty() {
                 let screen_y = self.current_y - self.scroll_offset;
                 let line_height = self.measure_text(&line, font, size).y as i32;
+                let line_width = self.measure_text(&line, font, size).x as i32;
 
                 if self.is_visible(self.current_y, line_height) {
+                    if let Some(bg) = bg_color {
+                        handle.draw_rectangle(
+                            self.current_x,
+                            screen_y,
+                            line_width,
+                            line_height,
+                            bg,
+                        );
+                    }
+
                     handle.draw_text_ex(
                         font,
                         &line,
-                        Vector2::new(self.margin_left as f32, screen_y as f32),
+                        Vector2::new(self.current_x as f32, screen_y as f32),
                         size,
                         spacing,
                         color,
@@ -148,12 +155,17 @@ impl<'a> RenderContext<'a> {
         if !line.is_empty() {
             let screen_y = self.current_y - self.scroll_offset;
             let line_height = self.measure_text(&line, font, size).y as i32;
+            let line_width = self.measure_text(&line, font, size).x as i32;
 
             if self.is_visible(self.current_y, line_height) {
+                if let Some(bg) = bg_color {
+                    handle.draw_rectangle(self.current_x, screen_y, line_width, line_height, bg);
+                }
+
                 handle.draw_text_ex(
                     font,
                     &line,
-                    Vector2::new(self.margin_left as f32, screen_y as f32),
+                    Vector2::new(self.current_x as f32, screen_y as f32),
                     size,
                     spacing,
                     color,
@@ -165,6 +177,11 @@ impl<'a> RenderContext<'a> {
     }
 
     fn should_skip_node(&self, node: &Node) -> bool {
+        let style = node.computed_style.borrow();
+        if let Some(Display::None) = style.display {
+            return true;
+        }
+
         if let Some(name) = node.element_name() {
             matches!(name, "title" | "script" | "style" | "head")
         } else {
@@ -177,108 +194,80 @@ impl<'a> RenderContext<'a> {
             return;
         }
 
+        let style = node.computed_style.borrow();
+
+        if let Some(margin_top) = style.margin_top {
+            self.add_spacing(margin_top as i32);
+        }
+
+        let old_x = self.current_x;
+        if let Some(padding_left) = style.padding_left {
+            self.current_x += padding_left as i32;
+        }
+
+        let is_bold = match &style.font_weight {
+            Some(FontWeight::Bold) | Some(FontWeight::Bolder) => true,
+            Some(FontWeight::Weight(w)) if *w >= 700 => true,
+            _ => false,
+        };
+
+        let is_italic = matches!(
+            &style.font_style,
+            Some(FontStyle::Italic) | Some(FontStyle::Oblique)
+        );
+
+        let font = match (is_bold, is_italic) {
+            (true, _) => self.bold_font,
+            (false, true) => self.italic_font.unwrap_or(self.regular_font),
+            (false, false) => self.regular_font,
+        };
+
+        let size = style.font_size.unwrap_or(self.font_size);
+
+        let color = style.color.unwrap_or(self.default_color);
+        let bg_color = style.background_color;
+
         match &node.data {
             NodeData::Element { name, .. } => match name.local.as_str() {
-                "h1" => {
-                    self.add_spacing(20);
-                    self.render_text_wrapped(
-                        handle,
-                        &node.get_text_content(),
-                        self.bold_font,
-                        self.heading_sizes[0],
-                        Color::new(100, 200, 100, 255),
-                    );
-                    self.add_spacing(10);
-                }
-                "h2" => {
-                    self.add_spacing(16);
-                    self.render_text_wrapped(
-                        handle,
-                        &node.get_text_content(),
-                        self.bold_font,
-                        self.heading_sizes[1],
-                        Color::new(120, 200, 120, 255),
-                    );
-                    self.add_spacing(8);
-                }
-                "h3" => {
-                    self.add_spacing(12);
-                    self.render_text_wrapped(
-                        handle,
-                        &node.get_text_content(),
-                        self.bold_font,
-                        self.heading_sizes[2],
-                        Color::new(140, 200, 140, 255),
-                    );
-                    self.add_spacing(6);
-                }
-                "h4" => {
-                    self.add_spacing(8);
-                    self.render_text_wrapped(
-                        handle,
-                        &node.get_text_content(),
-                        self.bold_font,
-                        self.heading_sizes[3],
-                        self.default_color,
-                    );
-                    self.add_spacing(4);
-                }
-                "p" | "div" => {
-                    self.render_text_wrapped(
-                        handle,
-                        &node.get_text_content(),
-                        self.regular_font,
-                        self.font_size,
-                        self.default_color,
-                    );
-                    self.add_spacing(16);
-                }
-                "strong" | "b" => {
-                    self.render_text_wrapped(
-                        handle,
-                        &node.get_text_content(),
-                        self.bold_font,
-                        self.font_size,
-                        self.default_color,
-                    );
-                }
-                "em" | "i" => {
-                    let font = self.italic_font.unwrap_or(self.regular_font);
+                "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
                     self.render_text_wrapped(
                         handle,
                         &node.get_text_content(),
                         font,
-                        self.font_size,
-                        self.default_color,
+                        size,
+                        color,
+                        bg_color,
                     );
                 }
-                "ul" | "ol" => {
-                    self.add_spacing(8);
-                    let old_x = self.current_x;
-                    self.current_x += 40;
+                "p" => {
                     for child in node.children.borrow().iter() {
                         self.render_node(handle, child);
                     }
-                    self.current_x = old_x;
-                    self.add_spacing(8);
+                }
+                "div" | "body" => {
+                    for child in node.children.borrow().iter() {
+                        self.render_node(handle, child);
+                    }
+                }
+                "strong" | "b" | "em" | "i" | "span" => {
+                    for child in node.children.borrow().iter() {
+                        self.render_node(handle, child);
+                    }
+                }
+                "ul" | "ol" => {
+                    for child in node.children.borrow().iter() {
+                        self.render_node(handle, child);
+                    }
                 }
                 "li" => {
                     let text = format!("• {}", node.get_text_content().trim());
-                    self.render_text_wrapped(
-                        handle,
-                        &text,
-                        self.regular_font,
-                        self.font_size,
-                        self.default_color,
-                    );
+                    self.render_text_wrapped(handle, &text, font, size, color, bg_color);
                 }
                 "br" => {
-                    let line_height =
-                        self.measure_text("A", self.regular_font, self.font_size).y as i32;
+                    let line_height = self.measure_text("A", font, size).y as i32;
                     self.add_spacing(line_height);
                 }
                 "hr" => {
-                    self.add_spacing(16);
                     let screen_y = self.current_y - self.scroll_offset;
                     if self.is_visible(self.current_y, 1) {
                         handle.draw_line(
@@ -286,43 +275,39 @@ impl<'a> RenderContext<'a> {
                             screen_y,
                             self.screen_width - self.margin_right,
                             screen_y,
-                            self.default_color,
+                            color,
                         );
                     }
-                    self.add_spacing(16);
+                    self.add_spacing(10);
                 }
                 "blockquote" => {
-                    self.add_spacing(12);
-                    let old_x = self.current_x;
-                    self.current_x += 60;
                     self.render_text_wrapped(
                         handle,
                         &node.get_text_content(),
-                        self.regular_font,
-                        self.font_size.max(BASE_FONT_SIZE),
+                        font,
+                        size.max(BASE_FONT_SIZE),
                         Color::new(150, 150, 150, 255),
+                        bg_color,
                     );
-                    self.current_x = old_x;
-                    self.add_spacing(12);
                 }
                 "code" | "pre" => {
-                    self.add_spacing(8);
                     self.render_text_wrapped(
                         handle,
                         &node.get_text_content(),
-                        self.regular_font,
-                        CODE_FONT_SIZE,
+                        font,
+                        size,
                         Color::new(200, 150, 100, 255),
+                        bg_color,
                     );
-                    self.add_spacing(8);
                 }
                 "a" => {
                     self.render_text_wrapped(
                         handle,
                         &node.get_text_content(),
-                        self.regular_font,
-                        self.font_size,
+                        font,
+                        size,
                         Color::new(100, 150, 255, 255),
+                        bg_color,
                     );
                 }
                 _ => {
@@ -333,13 +318,7 @@ impl<'a> RenderContext<'a> {
             },
             NodeData::Text { contents } => {
                 if !contents.trim().is_empty() {
-                    self.render_text_wrapped(
-                        handle,
-                        contents,
-                        self.regular_font,
-                        self.font_size,
-                        self.default_color,
-                    );
+                    self.render_text_wrapped(handle, contents, font, size, color, bg_color);
                 }
             }
             _ => {
@@ -347,6 +326,12 @@ impl<'a> RenderContext<'a> {
                     self.render_node(handle, child);
                 }
             }
+        }
+
+        self.current_x = old_x;
+
+        if let Some(margin_bottom) = style.margin_bottom {
+            self.add_spacing(margin_bottom as i32);
         }
     }
 }
@@ -395,7 +380,7 @@ pub fn render_document_scrollable<'a>(
 ) {
     let mut render_ctx = RenderContext::new(regular_font, bold_font, screen_width, screen_height)
         .with_margins(15, 15, 15)
-        .with_color(Color::new(200, 255, 200, 255))
+        .with_color(Color::BLACK)
         .with_scroll_offset(scroll_state.scroll_offset)
         .with_font_size(BASE_FONT_SIZE);
 

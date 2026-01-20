@@ -1,3 +1,4 @@
+use crate::css::types::ComputedStyle;
 use html5ever::{LocalName, Namespace};
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
@@ -43,6 +44,7 @@ pub struct Node {
     pub data: NodeData,
     pub parent: RefCell<Weak<Node>>,
     pub children: RefCell<Vec<Rc<Node>>>,
+    pub computed_style: RefCell<ComputedStyle>,
 }
 
 impl Node {
@@ -51,6 +53,7 @@ impl Node {
             data,
             parent: RefCell::new(Weak::new()),
             children: RefCell::new(Vec::new()),
+            computed_style: RefCell::new(ComputedStyle::new()),
         })
     }
 
@@ -85,6 +88,16 @@ impl Node {
     pub fn text_content(&self) -> Option<&str> {
         match &self.data {
             NodeData::Text { contents } => Some(contents),
+            _ => None,
+        }
+    }
+
+    pub fn get_attribute(&self, attr_name: &str) -> Option<String> {
+        match &self.data {
+            NodeData::Element { attrs, .. } => attrs
+                .iter()
+                .find(|a| a.name.local.eq_ignore_ascii_case(attr_name))
+                .map(|a| a.value.clone()),
             _ => None,
         }
     }

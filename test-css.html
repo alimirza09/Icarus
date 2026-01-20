@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CSS Test Page - Icarus Browser</title>
+</head>
+
+<body>
+    <h1>CSS Feature Test</h1>
+
+    <h2>Inline Color Styles</h2>
+    <p style="color: red">This text should be red.</p>
+    <p style="color: #0000FF">This text should be blue (hex).</p>
+    <p style="color: rgb(0, 255, 0)">This text should be green (rgb).</p>
+
+    <h2>Font Size</h2>
+    <p style="font-size: 32px">This is 32px text.</p>
+    <p style="font-size: 18px">This is 18px text.</p>
+    <p style="font-size: 2em">This is 2em text (should be ~32px).</p>
+
+    <h2>Font Weight and Style</h2>
+    <p style="font-weight: bold">This should be bold via CSS.</p>
+    <p style="font-weight: normal">This should be normal weight.</p>
+    <p style="font-style: italic">This should be italic via CSS.</p>
+
+    <h2>Margins and Padding</h2>
+    <p style="margin-top: 50px; margin-bottom: 50px">This paragraph has large top and bottom margins.</p>
+    <div style="padding-left: 100px">
+        <p>This div has 100px left padding, so this text is indented.</p>
+    </div>
+
+    <h2>Background Colors</h2>
+    <p style="background-color: yellow; color: black">Yellow background, black text.</p>
+    <p style="background-color: #FF6B6B; color: white">Red background, white text.</p>
+
+    <h2>Display Property</h2>
+    <p>This paragraph is visible.</p>
+    <p style="display: none">This paragraph should be hidden!</p>
+    <p>This paragraph is also visible.</p>
+
+    <h2>Combined Styles</h2>
+    <p style="color: purple; font-size: 28px; font-weight: bold; margin: 30px; padding-left: 20px">
+        This paragraph combines multiple styles: purple, 28px, bold, with margins and padding.
+    </p>
+
+    <div style="color: darkgray; font-size: 20px">
+        <p>Text inside a styled div inherits the styles.</p>
+        <p style="color: orange">But this paragraph overrides with orange.</p>
+    </div>
+
+    <h2>Named Colors</h2>
+    <p style="color: red">Red</p>
+    <p style="color: blue">Blue</p>
+    <p style="color: green">Green</p>
+    <p style="color: yellow">Yellow</p>
+    <p style="color: purple">Purple</p>
+    <p style="color: orange">Orange</p>
+    <p style="color: gray">Gray</p>
+
+    <hr>
+
+    <p style="color: green; font-size: 24px; font-weight: bold">
+        ✓ If you can see all these styles applied correctly, CSS support is working!
+    </p>
+</body>
+
+</html>
