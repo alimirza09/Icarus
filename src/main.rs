@@ -11,7 +11,7 @@ fn main() {
         icarus::networking::http::connect_to_http_site("https://www.example.com").await
     });
 
-    let _html = std::fs::read_to_string("/home/ali/Projects/icarus/test-css.html")
+    let _html = std::fs::read_to_string("/home/ali/Projects/Icarus/test-css.html")
         .expect("Error reading test.html");
 
     println!("Parsing HTML\n");
@@ -37,9 +37,9 @@ fn main() {
 
     rl.set_target_fps(60);
 
-    let font_data = std::fs::read("/home/ali/Projects/icarus/resources/NotoSerif-Black.ttf")
+    let font_data = std::fs::read("/home/ali/Projects/Icarus/resources/NotoSerif-Black.ttf")
         .expect("Failed to read font");
-    let bold_font_data = std::fs::read("/home/ali/Projects/icarus/resources/NotoSerif-Bold.ttf")
+    let bold_font_data = std::fs::read("/home/ali/Projects/Icarus/resources/NotoSerif-Bold.ttf")
         .expect("failed to read bold font");
 
     let char_ranges: Vec<(u32, u32)> = vec![

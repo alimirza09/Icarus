@@ -86,7 +86,6 @@ impl<'a> RenderContext<'a> {
     }
 
     fn measure_text(&self, text: &str, font: &Font, size: f32) -> Vector2 {
-        // let spacing = size / 0.0;
         let spacing = 0.0;
         font.measure_text(text, size, spacing)
     }
@@ -107,7 +106,7 @@ impl<'a> RenderContext<'a> {
 
         let words: Vec<&str> = text.split_whitespace().collect();
         let mut line = String::new();
-        let spacing = size / 10.0;
+        let spacing = 0.0;
         let wrap_guard = size as i32;
 
         for word in words {
